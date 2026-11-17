@@ -1,0 +1,134 @@
+{
+  "version": "iwsdk.scene.v1",
+  "units": "meters",
+  "components": {
+    "com.iwsdk.components.DomeGradient": {
+      "sky": [
+        0.03,
+        0.03,
+        0.09,
+        1
+      ],
+      "equator": [
+        0.07,
+        0.05,
+        0.18,
+        1
+      ],
+      "ground": [
+        0.02,
+        0.02,
+        0.05,
+        1
+      ],
+      "elevationDeg": 24,
+      "azimuthDeg": -31,
+      "dither": true
+    },
+    "com.iwsdk.components.IBLGradient": {
+      "sky": [
+        0.3,
+        0.3,
+        0.5,
+        1
+      ],
+      "equator": [
+        0.25,
+        0.22,
+        0.4,
+        1
+      ],
+      "ground": [
+        0.1,
+        0.1,
+        0.2,
+        1
+      ],
+      "intensity": 0.5
+    }
+  },
+  "environment": {
+    "toneMapping": "aces",
+    "exposure": 1.2,
+    "shadows": false,
+    "shadowMapType": "pcf"
+  },
+  "resources": {},
+  "nodes": [
+    {
+      "id": "welcome-panel",
+      "name": "Welcome Panel",
+      "content": {
+        "type": "asset",
+        "asset": "welcome-panel"
+      },
+      "transform": {
+        "position": [
+          -1.9,
+          1.85,
+          -1.6
+        ],
+        "scale": 0.22
+      },
+      "components": {
+        "RayInteractable": {}
+      }
+    },
+    {
+      "id": "key-light",
+      "name": "Key Light",
+      "transform": {
+        "position": [
+          -2.3541,
+          11.2763,
+          1.762
+        ],
+        "rotationDeg": [
+          -73.3982,
+          -11.3134,
+          0
+        ]
+      },
+      "components": {
+        "DirectionalLight": {
+          "color": [
+            1,
+            0.945,
+            0.87,
+            1
+          ],
+          "intensity": 2.3,
+          "castShadow": true,
+          "shadowMapSize": "2048",
+          "shadowCameraSize": 8,
+          "shadowCameraNear": 2,
+          "shadowCameraFar": 24,
+          "shadowRadius": 7,
+          "shadowBias": -0.0004,
+          "shadowNormalBias": 0.02
+        }
+      }
+    },
+    {
+      "id": "fill-light",
+      "name": "Fill Light",
+      "components": {
+        "HemisphereLight": {
+          "skyColor": [
+            0.78,
+            0.83,
+            0.96,
+            1
+          ],
+          "groundColor": [
+            0.592,
+            0.608,
+            0.651,
+            1
+          ],
+          "intensity": 1.15
+        }
+      }
+    }
+  ]
+}
