@@ -1,4 +1,4 @@
-# 👁️ Gaze Breaker
+# ️Gaze Breaker
 
 Brick-breaker where **your eyes are the paddle**. Built for Meta VR Glasses and Meta Quest with the
 Immersive Web SDK (WebXR). 👀 Look to steer, 🤏 pinch to launch. Every brick you break plays a note in
