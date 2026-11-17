@@ -48,7 +48,6 @@ const CAP_NAMES = ['WIDE PADDLE', 'SLOW MOTION', 'FIREBALL'];
 const CAP_SECONDS = [10, 6, 7];
 const CAP_CHIME = [784, 988, 1175];
 const DROP_CHANCE = 0.16;
-const DWELL_SEC = 1; // look at an option this long to toggle it
 const OPT_KEY = 'gaze-breaker-options';
 const PROG_KEY = 'gaze-breaker-progress';
 // High-contrast tile colours: the Okabe-Ito colour-blind-safe set, each 3:1 or better against the dark sky.
@@ -113,6 +112,7 @@ export class BreakerSystem extends createSystem({
   private blurred = false; // the system menu is open: pause
   private recenterIn = -1;
   private audioT = 0;
+  private nudge = 0; // quick surge, gone in a third of a second
   private flash = 0; // 1 right after a big moment, fading over 2 s
   private ringBoost = 0;
   private o = new Vector3();
@@ -308,7 +308,7 @@ export class BreakerSystem extends createSystem({
     this.fxPanel.mesh.position.set(0, -0.875, -0.03);
     this.field.add(this.hud.mesh, this.msg.mesh, this.comboPanel.mesh, this.toast.mesh, this.fxPanel.mesh);
 
-    // Accessibility toggles, shown between rounds. Look at one for a second, or pinch it.
+    // Accessibility toggles, shown between rounds. Look at one to highlight it, pinch to switch it.
     OPT_TEXT.forEach((_, kind) => {
       const panel = canvasPlane(0.4, 0.15, 512);
       this.put(panel.mesh, (kind - 1) * 0.43, -0.61);
@@ -321,8 +321,7 @@ export class BreakerSystem extends createSystem({
     this.put(this.progPanel.mesh, 0, -0.395);
     this.field.add(this.progPanel.mesh);
     this.queries.pressedOptions.subscribe('qualify', (e) => {
-      // dwell === -1: the look-timer already toggled it, a pinch on top would undo it
-      if (this.showMenus && e.getValue(Option, 'dwell') !== -1) this.toggle(e.getValue(Option, 'kind') as number);
+      if (this.showMenus) this.toggle(e.getValue(Option, 'kind') as number); // pinch only: looking at a card never toggles it
     });
 
     this.newGame();
@@ -420,10 +419,11 @@ export class BreakerSystem extends createSystem({
     this.field.position.y = (Math.random() - 0.5) * sh;
 
     this.clock += dt;
-    // The ring frames only react to the big moments (a combo milestone, a power-up, a new level), never to single bricks.
+    // The ring frames react to a chain (every third brick a little, every fifth a lot), power-ups and new levels, not to every brick.
     this.flash = Math.max(0, this.flash - dt * 0.5);
-    const lit = Math.max(this.flash, this.fx[2] > 0 ? 0.5 : 0, Math.min(0.6, Math.floor(this.combo / 5) * 0.2));
-    this.ringBoost += (lit - this.ringBoost) * Math.min(1, 2 * dt);
+    this.nudge = Math.max(0, this.nudge - dt * 3);
+    const lit = Math.max(this.flash, this.nudge, this.fx[2] > 0 ? 0.5 : 0, Math.min(0.6, Math.floor(this.combo / 5) * 0.2));
+    this.ringBoost += (lit - this.ringBoost) * Math.min(1, (lit > this.ringBoost ? 10 : 2) * dt); // up fast, down slowly
     // Always a little warm; streaks and the fireball push it hotter, then it settles back.
     this.energy += (Math.min(1, 0.25 + this.combo / 10 + (this.fx[2] > 0 ? 0.3 : 0)) - this.energy) * Math.min(1, 3 * dt);
     const calm = this.opts.calm; // calm: slow drift, no pulsing, no warming
@@ -483,19 +483,9 @@ export class BreakerSystem extends createSystem({
       const kind = e.getValue(Option, 'kind') as number;
       const panel = this.optPanels[kind];
       panel.mesh.visible = this.showMenus;
-      let dwell = e.getValue(Option, 'dwell') as number;
-      const hov = this.showMenus && e.hasComponent(Hovered);
-      if (!hov) dwell = 0;
-      else {
-        if (dwell >= 0 && (dwell += dt) >= DWELL_SEC) {
-          this.toggle(kind);
-          dwell = -1;
-        }
-      }
-      e.setValue(Option, 'dwell', dwell);
+      const hov = this.showMenus && e.hasComponent(Hovered); // looking at a card only highlights it
       const on = this.opts[OPT_KEYS[kind]];
-      const prog = dwell > 0 ? dwell / DWELL_SEC : 0;
-      panel.draw(`${on}|${Math.round(prog * 10)}|${hov}`, (c, w, h) => drawChip(c, w, h, OPT_TEXT[kind][0], OPT_TEXT[kind][1], on, prog, hov));
+      panel.draw(`${on}|${hov}`, (c, w, h) => drawChip(c, w, h, OPT_TEXT[kind][0], OPT_TEXT[kind][1], on, hov));
     }
     this.progPanel.mesh.visible = this.showMenus;
     if (this.showMenus) {
@@ -567,7 +557,7 @@ export class BreakerSystem extends createSystem({
       this.freeze = 0.07; // brief hit-stop makes a big chain land
       this.flash = 0.8;
       this.shake = 0.014;
-    }
+    } else if (this.combo % 3 === 0) this.nudge = 0.5; // a smaller surge every third brick
     this.shatter(i);
     if (this.g.kind[i] === KIND_BOMB) this.explode(i);
     this.checkClear();

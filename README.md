@@ -20,7 +20,7 @@ _These are real screenshots from the Immersive Web Emulator (Meta VR Glasses pro
 - You have 3 lives. Clearing a wall starts a denser one with a faster ball (up to level 10), in a new colour world.
 - **Daily wall:** the layout is seeded by the UTC date, so everyone plays the same wall on the same day.
   Your best score is saved on your device.
-- **TNT bricks** (striped like caution tape) blow up everything around them, and set off other TNT bricks in a chain.
+- 💣 **Bomb bricks** (pale, with a cartoon bomb on them) blow up everything around them, and set off other bomb bricks in a chain.
 - **Power-ups** drop from some bricks: wide paddle, slow motion, fireball.
 
 ## ✨ Design notes
@@ -30,7 +30,7 @@ _These are real screenshots from the Immersive Web Emulator (Meta VR Glasses pro
   eyes, inside the Meta VR Glasses view (37° left/right, 25° up, 43° down).
 - 🔁 **Input fallbacks.** Eye gaze if the device provides it; otherwise head direction in a headset; mouse
   on a plain desktop page.
-- ♿ **Accessibility options** (shown between rounds; look at one for a second, or pinch it; saved on your device):
+- ♿ **Accessibility options** (shown between rounds; look at one to highlight it, pinch to switch it; saved on your device):
   - 🌙 **Calm**: no shake, pulsing or fast background motion; a soft dusk sky; the beat is swapped for ambient chords and chimes.
   - 🔲 **Contrast**: near-black sky, a different pattern on each row of bricks (so colour is never the only cue), black-and-white cards.
   - 🛟 **Assist**: slower ball, wider paddle, 5 lives.

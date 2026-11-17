@@ -78,7 +78,7 @@ export function makeBackground(): {
           float ph = fract(2.2 / max(s, 0.05) + rt);
           float line = smoothstep(0.0, 0.06, ph) * smoothstep(0.2, 0.06, ph);
           float vis = smoothstep(0.55, 0.95, s) * smoothstep(3.2, 1.8, s);
-          col += mix(c3, c2, 0.25) * 2.6 * line * vis * rg * (0.35 + 0.9 * pu + 0.7 * bp); // flashes on the kick; burns hotter on combo milestones, power-ups and new levels
+          col += mix(c3, c2, 0.25) * 2.6 * line * vis * rg * (0.35 + 0.9 * pu + 1.0 * bp); // flashes on the kick; burns hotter on combo milestones, power-ups and new levels
         }
         col += vec3(star);
         col *= (0.45 + 0.55 * smoothstep(-0.7, 0.4, d.y)) * dm; // dm: dimmed for the high-contrast option
@@ -339,8 +339,8 @@ export function drawFx(g: Ctx, w: number, h: number, items: { kind: number; frac
   });
 }
 
-// An accessibility toggle: title and ON/OFF pill on one line, help under it, and a bar that fills while you look at it.
-export function drawChip(g: Ctx, w: number, h: number, title: string, sub: string, on: boolean, prog: number, hover: boolean): void {
+// An accessibility toggle: title and ON/OFF pill on one line, help under it. Hover draws a white outline; a pinch toggles it.
+export function drawChip(g: Ctx, w: number, h: number, title: string, sub: string, on: boolean, hover: boolean): void {
   glass(g, w, h);
   const pad = h * 0.17;
   if (hover) {
@@ -373,12 +373,6 @@ export function drawChip(g: Ctx, w: number, h: number, title: string, sub: strin
   g.fillStyle = T.label;
   fit(g, sub, h * 0.22, w - 2 * pad, 600);
   g.fillText(sub, pad, h * 0.62);
-  if (prog > 0) {
-    g.fillStyle = T.a;
-    g.beginPath();
-    g.roundRect(pad, h * 0.84, (w - 2 * pad) * prog, h * 0.06, h * 0.03);
-    g.fill();
-  }
 }
 
 // The standard brick face: solid colour, lit from above (bright top, darker underside) with a glossy stripe, so it reads
@@ -432,35 +426,32 @@ export function patternTexture(kind: number, w: number, h: number): CanvasTextur
     for (let x = -H; x < W; x += H * 0.5) { g.moveTo(x, H); g.lineTo(x + H, 0); }
     g.stroke();
   } else if (kind === 5) {
-    // explosive brick, the way arcade breakers mark them: caution-tape stripes top and bottom and a bold TNT label
-    const band = H * 0.2;
-    for (const y of [0, H - band]) {
-      g.save();
-      g.beginPath();
-      g.rect(0, y, W, band);
-      g.clip();
-      g.fillStyle = '#ff8a00';
-      g.fillRect(0, y, W, band);
-      g.fillStyle = '#111';
-      for (let x = -band; x < W + band; x += band * 1.6) {
-        g.beginPath();
-        g.moveTo(x, y + band);
-        g.lineTo(x + band * 0.8, y + band);
-        g.lineTo(x + band * 1.8, y);
-        g.lineTo(x + band, y);
-        g.fill();
-      }
-      g.restore();
-    }
-    g.fillStyle = '#d9230f';
-    g.textAlign = 'center';
-    g.textBaseline = 'middle';
-    g.font = `900 ${H * 0.55}px Arial Black, Impact, sans-serif`;
-    g.strokeStyle = '#d9230f';
-    g.lineWidth = H * 0.08; // thicken the letters: the fallback font is not very heavy
-    g.lineJoin = 'round';
-    g.strokeText('TNT', W / 2, H / 2 + 2);
-    g.fillText('TNT', W / 2, H / 2 + 2);
+    // bomb brick: a cartoon bomb (black ball, shine, fuse and a lit spark)
+    const cx = W / 2 - H * 0.1, cy = H * 0.62, r = H * 0.33;
+    g.fillStyle = '#16161c';
+    g.beginPath();
+    g.arc(cx, cy, r, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = 'rgba(255,255,255,0.85)';
+    g.beginPath();
+    g.arc(cx - r * 0.38, cy - r * 0.38, r * 0.22, 0, Math.PI * 2);
+    g.fill();
+    g.strokeStyle = '#3a2a1a';
+    g.lineWidth = H * 0.07;
+    g.lineCap = 'round';
+    g.beginPath();
+    g.moveTo(cx + r * 0.55, cy - r * 0.85);
+    g.quadraticCurveTo(cx + r * 0.95, cy - r * 1.35, cx + r * 1.45, cy - r * 1.2);
+    g.stroke();
+    const sx = cx + r * 1.5, sy = cy - r * 1.2;
+    g.fillStyle = '#ff5a1a';
+    g.beginPath();
+    for (let i = 0; i < 16; i++) g.lineTo(sx + Math.cos((i * Math.PI) / 8) * H * (i % 2 ? 0.1 : 0.2), sy + Math.sin((i * Math.PI) / 8) * H * (i % 2 ? 0.1 : 0.2));
+    g.fill();
+    g.fillStyle = '#ffe14d';
+    g.beginPath();
+    g.arc(sx, sy, H * 0.07, 0, Math.PI * 2);
+    g.fill();
   } else if (kind === 4) {
     for (let r = 0; r < 2; r++) {
       g.beginPath();
