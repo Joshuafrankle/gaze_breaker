@@ -171,12 +171,14 @@ export class BreakerSystem extends createSystem({
     this.bg = makeBackground();
     this.anchor.add(this.bg.mesh);
 
-    // Invisible pinch/click target behind everything, so a pinch anywhere you look counts.
+    // Invisible pinch/click target behind everything, so a pinch anywhere you look counts. The glasses' view is
+    // +-37 deg and real gaze is noisy, so it is made wide enough that the SDK's own ~48 deg targeting limit is
+    // what ends it, not this plane.
     const backdrop = new Mesh(
-      new PlaneGeometry(2.6, 2.0),
+      new PlaneGeometry(12, 8),
       new MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
     );
-    backdrop.position.set(0, -0.25, -D - 0.03);
+    backdrop.position.set(0, 0, -D - 0.03);
     const be = this.world.createTransformEntity(backdrop, { parent: anchorEntity });
     be.addComponent(RayInteractable);
     be.addComponent(Backdrop);
