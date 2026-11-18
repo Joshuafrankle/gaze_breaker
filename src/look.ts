@@ -540,7 +540,13 @@ export function drawProgress(
   big(0, `${s.streak} ${s.streak === 1 ? 'DAY' : 'DAYS'}`, '#fff', s.streak > 0 ? h * 0.2 : 0);
   label(1, s.name ? `TODAY: ${s.name}` : "TODAY'S WALL");
   big(1, s.done ? 'CLEARED' : 'CLEAR IT', s.done ? T.on : '#ffd34d');
-  label(2, 'RANK  ›'); // the arrow hints that it opens the list
+  label(2, 'RANK');
+  // A drawn chevron after the label (the text glyph sits low), hinting that the panel opens the list.
+  const cx = col * 2.5 + g.measureText('RANK').width / 2 + h * 0.1, cy = h * 0.26, k = h * 0.04;
+  g.strokeStyle = T.label;
+  g.lineWidth = h * 0.022;
+  g.lineCap = g.lineJoin = 'round';
+  g.beginPath(); g.moveTo(cx - k / 2, cy - k); g.lineTo(cx + k / 2, cy); g.lineTo(cx - k / 2, cy + k); g.stroke();
   big(2, s.rank, '#fff', 0, 0.5);
   const bw = col * 0.6, bx = col * 2.5 - bw / 2, by = h * 0.76, bh = h * 0.07;
   g.fillStyle = 'rgba(255,255,255,0.18)';

@@ -810,14 +810,9 @@ export class BreakerSystem extends createSystem({
     this.g.speed = this.speedFor();
   }
 
-  // Menus (progress, options) are hidden during play, and during a brand-new player's very first countdown,
-  // so the opening is one short instruction instead of a wall of panels.
-  private get firstEver(): boolean {
-    return this.state === 'ready' && this.prog.bricks === 0 && this.score === 0 && this.level === 1;
-  }
-
+  // Menus (progress, options) show whenever the ball isn't in play, so the options are there from the first screen.
   private get showMenus(): boolean {
-    return this.state !== 'play' && !this.firstEver;
+    return this.state !== 'play';
   }
 
   private save(): void {
