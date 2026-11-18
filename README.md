@@ -5,11 +5,11 @@ Glasses (and Meta Quest) with the Immersive Web SDK (WebXR). Look to steer, pinc
 plays a note in space, and chaining bricks without touching the paddle climbs a pentatonic scale. So yes,
 you're making music by staring at things.
 
-|                          First screen                           |                       In play (fireball power-up)                        |
+|                          First screen                           |                       In play                        |
 | :-------------------------------------------------------------: | :----------------------------------------------------------------------: |
-| ![First screen: LOOK TO STEER, pinch to launch](docs/start.png) |        ![Playing, with a fireball power-up active](docs/play.png)        |
+| ![First screen: LOOK TO STEER, pinch to launch](docs/start.png) |        ![Playing: the ball in flight over a half-cleared wall](docs/play.png)        |
 |             **Calm mode** (soft sky, ambient sound)             |              **Contrast mode** (patterns, not just colour)               |
-|         ![Calm mode on the sunset world](docs/calm.png)         | ![Contrast mode with a different pattern on each row](docs/contrast.png) |
+|         ![Calm mode: a softer sky and no motion](docs/calm.png)         | ![Contrast mode with a different pattern on each row](docs/contrast.png) |
 
 _Real screenshots from the Immersive Web Emulator (Meta VR Glasses profile)._
 
