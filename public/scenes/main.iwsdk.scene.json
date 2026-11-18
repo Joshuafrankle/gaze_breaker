@@ -64,11 +64,11 @@
       },
       "transform": {
         "position": [
-          -1.9,
+          -1.45,
           1.85,
           -1.6
         ],
-        "scale": 0.22
+        "scale": 0.16
       },
       "components": {
         "RayInteractable": {}
