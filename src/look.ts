@@ -475,38 +475,95 @@ export function patternTexture(kind: number, w: number, h: number): CanvasTextur
   return map;
 }
 
-// The list of ranks: the one you hold is filled in, the ones ahead are dimmed with what it takes to reach them.
-export function drawRanks(g: Ctx, w: number, h: number, ranks: { name: string; at: number }[], index: number, bricks: number): void {
-  glass(g, w, h);
-  const pad = w * 0.06;
-  g.textAlign = 'left';
-  g.fillStyle = T.label;
-  fit(g, 'RANKS', h * 0.1, w * 0.4, 700);
-  g.fillText('RANKS', pad, h * 0.1);
-  g.textAlign = 'right';
-  fit(g, `${bricks} bricks broken`, h * 0.085, w * 0.5, 600);
-  g.fillText(`${bricks} bricks broken`, w - pad, h * 0.1);
-  const rh = h * 0.115;
-  ranks.forEach((r, i) => {
-    const cy = h * (0.27 + 0.13 * i);
-    const now = i === index;
-    if (now) {
-      g.fillStyle = T.a;
-      g.beginPath(); g.roundRect(pad * 0.6, cy - rh / 2, w - pad * 1.2, rh, rh / 2); g.fill();
+// A badge for each rank: one chevron, two chevrons, a star, a ringed star, a crown.
+function rankIcon(g: Ctx, kind: number, cx: number, cy: number, r: number): void {
+  g.lineWidth = r * 0.2;
+  g.lineCap = g.lineJoin = 'round';
+  const star = (R: number) => {
+    g.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + (i * Math.PI) / 5, d = i % 2 ? R * 0.45 : R;
+      g.lineTo(cx + Math.cos(a) * d, cy + Math.sin(a) * d);
     }
-    g.fillStyle = now ? '#001018' : i < index ? '#fff' : 'rgba(255,255,255,0.55)';
+    g.closePath();
+    g.fill();
+  };
+  if (kind <= 1) {
+    for (let j = 0; j <= kind; j++) {
+      const y = cy + (j - kind / 2) * r * 0.62;
+      g.beginPath(); g.moveTo(cx - r * 0.5, y + r * 0.18); g.lineTo(cx, y - r * 0.22); g.lineTo(cx + r * 0.5, y + r * 0.18); g.stroke();
+    }
+  } else if (kind === 2) star(r * 0.68);
+  else if (kind === 3) {
+    g.beginPath(); g.arc(cx, cy, r * 0.74, 0, Math.PI * 2); g.stroke();
+    star(r * 0.46);
+  } else {
+    g.beginPath();
+    [[-0.62, 0.42], [-0.62, -0.38], [-0.3, 0], [0, -0.52], [0.3, 0], [0.62, -0.38], [0.62, 0.42]].forEach(([x, y]) => g.lineTo(cx + x * r, cy + y * r));
+    g.closePath();
+    g.fill();
+  }
+}
+
+// The list of ranks, in its own look (header band, a rail of badges) so it reads as a different panel from the cards.
+// Reached ranks are filled, the one you hold glows gold, the ones ahead are outlined with what it takes to reach them.
+export function drawRanks(g: Ctx, w: number, h: number, ranks: { name: string; at: number }[], index: number, bricks: number): void {
+  const m = 5, rad = 16, band = h * 0.17;
+  g.textBaseline = 'middle';
+  g.fillStyle = 'rgba(6,8,20,0.97)';
+  g.beginPath(); g.roundRect(m, m, w - 2 * m, h - 2 * m, rad); g.fill();
+  const grad = g.createLinearGradient(0, 0, w, 0);
+  grad.addColorStop(0, T.a);
+  grad.addColorStop(1, T.b);
+  g.fillStyle = grad;
+  g.beginPath(); g.roundRect(m, m, w - 2 * m, band, [rad, rad, 0, 0]); g.fill();
+  g.strokeStyle = grad;
+  g.lineWidth = 4;
+  g.beginPath(); g.roundRect(m, m, w - 2 * m, h - 2 * m, rad); g.stroke();
+  const pad = w * 0.06;
+  g.fillStyle = '#001018';
+  g.textAlign = 'left';
+  fit(g, 'RANKS', band * 0.55, w * 0.3, 800);
+  g.fillText('RANKS', pad, m + band / 2);
+  g.textAlign = 'right';
+  fit(g, `${bricks} bricks broken`, band * 0.42, w * 0.5, 700);
+  g.fillText(`${bricks} bricks broken`, w - pad, m + band / 2);
+
+  const r = h * 0.052, bx = pad + r, step = h * 0.14, y0 = h * 0.29;
+  g.lineWidth = 4;
+  g.strokeStyle = 'rgba(255,255,255,0.25)'; // the rail: grey ahead of you, coloured up to your rank
+  g.beginPath(); g.moveTo(bx, y0); g.lineTo(bx, y0 + step * (ranks.length - 1)); g.stroke();
+  g.strokeStyle = T.a;
+  g.beginPath(); g.moveTo(bx, y0); g.lineTo(bx, y0 + step * index); g.stroke();
+  ranks.forEach((rk, i) => {
+    const cy = y0 + step * i, now = i === index, got = i < index;
+    if (now) {
+      g.fillStyle = 'rgba(255,255,255,0.1)';
+      g.beginPath(); g.roundRect(pad * 0.5, cy - step * 0.46, w - pad, step * 0.92, 12); g.fill();
+    }
+    g.beginPath(); g.arc(bx, cy, r, 0, Math.PI * 2);
+    g.fillStyle = now ? '#ffd34d' : got ? T.a : 'rgba(6,8,20,1)';
+    g.shadowColor = '#ffd34d';
+    g.shadowBlur = now ? 16 : 0;
+    g.fill();
+    g.shadowBlur = 0;
+    if (!got && !now) { g.strokeStyle = 'rgba(255,255,255,0.4)'; g.lineWidth = 3; g.stroke(); }
+    g.strokeStyle = g.fillStyle = now || got ? '#001018' : 'rgba(255,255,255,0.45)';
+    rankIcon(g, i, bx, cy, r);
     g.textAlign = 'left';
-    fit(g, r.name, rh * 0.62, w * 0.5, 800);
-    g.fillText(r.name, pad * 1.2, cy);
+    g.fillStyle = now ? '#ffd34d' : got ? '#fff' : 'rgba(255,255,255,0.55)';
+    fit(g, rk.name, h * 0.07, w * 0.45, 800);
+    g.fillText(rk.name, bx + r + w * 0.03, cy);
     g.textAlign = 'right';
-    const note = now ? 'YOU ARE HERE' : r.at === 0 ? 'start' : `${r.at} bricks`;
-    fit(g, note, rh * 0.5, w * 0.4, 700);
-    g.fillText(note, w - pad * 1.2, cy);
+    g.fillStyle = now ? '#ffd34d' : T.label;
+    const note = now ? 'YOU ARE HERE' : got ? 'reached' : `${rk.at} bricks`;
+    fit(g, note, h * 0.055, w * 0.3, 700);
+    g.fillText(note, w - pad, cy);
   });
   g.textAlign = 'center';
   g.fillStyle = T.label;
-  fit(g, 'Pinch to close', h * 0.07, w * 0.5, 600);
-  g.fillText('Pinch to close', w / 2, h * 0.93);
+  fit(g, 'Pinch to close', h * 0.055, w * 0.5, 600);
+  g.fillText('Pinch to close', w / 2, h * 0.94);
 }
 
 // Between rounds: daily streak, whether today's wall is cleared, and lifetime rank with a progress bar.
@@ -542,7 +599,7 @@ export function drawProgress(
   big(1, s.done ? 'CLEARED' : 'CLEAR IT', s.done ? T.on : '#ffd34d');
   label(2, 'RANK');
   // A drawn chevron after the label (the text glyph sits low), hinting that the panel opens the list.
-  const cx = col * 2.5 + g.measureText('RANK').width / 2 + h * 0.1, cy = h * 0.26, k = h * 0.04;
+  const cx = col * 2.5 + g.measureText('RANK').width / 2 + h * 0.1, cy = h * 0.29, k = h * 0.04; // a touch below the label's centre, where the text's optical middle is
   g.strokeStyle = T.label;
   g.lineWidth = h * 0.022;
   g.lineCap = g.lineJoin = 'round';
