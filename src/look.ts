@@ -365,11 +365,12 @@ export function drawChip(g: Ctx, w: number, h: number, title: string, sub: strin
   g.textAlign = 'center';
   g.fillStyle = on ? '#001018' : 'rgba(255,255,255,0.8)';
   g.font = `800 ${ph * 0.6}px sans-serif`;
-  g.fillText(on ? 'ON' : 'OFF', px + pw / 2, py + ph / 2 + 1);
+  const ink = (t: string) => (g.measureText(t).actualBoundingBoxDescent - g.measureText(t).actualBoundingBoxAscent) / 2; // ink centre vs the y it is drawn at
+  g.fillText(on ? 'ON' : 'OFF', px + pw / 2, py + ph / 2 - ink(on ? 'ON' : 'OFF'));
   g.textAlign = 'left';
   g.fillStyle = '#fff';
   fit(g, title, h * 0.27, px - pad * 1.6, 800);
-  g.fillText(title, pad, h * 0.3);
+  g.fillText(title, pad, h * 0.3 - ink(title)); // same line as the pill's middle
   g.fillStyle = T.label;
   fit(g, sub, h * 0.22, w - 2 * pad, 600);
   g.fillText(sub, pad, h * 0.62);
@@ -574,10 +575,10 @@ export function drawProgress(
   glass(g, w, h);
   const col = w / 3;
   g.textAlign = 'center';
-  const label = (i: number, text: string) => {
+  const label = (i: number, text: string, dx = 0) => {
     g.fillStyle = T.label;
     fit(g, text, h * 0.18, col * 0.84, 700);
-    g.fillText(text, col * (i + 0.5), h * 0.26);
+    g.fillText(text, col * (i + 0.5) + dx, h * 0.26);
   };
   const big = (i: number, text: string, color = '#fff', dx = 0, y = 0.6) => {
     g.fillStyle = color;
@@ -597,15 +598,19 @@ export function drawProgress(
   big(0, `${s.streak} ${s.streak === 1 ? 'DAY' : 'DAYS'}`, '#fff', s.streak > 0 ? h * 0.2 : 0);
   label(1, s.name ? `TODAY: ${s.name}` : "TODAY'S WALL");
   big(1, s.done ? 'CLEARED' : 'CLEAR IT', s.done ? T.on : '#ffd34d');
-  label(2, 'RANK');
-  // A drawn chevron after the label (the text glyph sits low), hinting that the panel opens the list.
-  const cx = col * 2.5 + g.measureText('RANK').width / 2 + h * 0.1, cy = h * 0.29, k = h * 0.04; // a touch below the label's centre, where the text's optical middle is
+  const nudge = -h * 0.045; // half the chevron, so "RANK >" as a pair sits centred over the rank name
+  label(2, 'RANK', nudge);
+  // A drawn chevron after the label, hinting that the panel opens the list. It is centred on the label's real ink
+  // (the em box the text is placed by is taller than the capitals), so it lines up whatever the font size.
+  const m = g.measureText('RANK');
+  const cx = col * 2.5 + nudge + m.width / 2 + h * 0.08, cy = h * 0.26 + (m.actualBoundingBoxDescent - m.actualBoundingBoxAscent) / 2;
+  const k = (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) * 0.3;
   g.strokeStyle = T.label;
-  g.lineWidth = h * 0.022;
+  g.lineWidth = k * 0.55;
   g.lineCap = g.lineJoin = 'round';
   g.beginPath(); g.moveTo(cx - k / 2, cy - k); g.lineTo(cx + k / 2, cy); g.lineTo(cx - k / 2, cy + k); g.stroke();
-  big(2, s.rank, '#fff', 0, 0.5);
-  const bw = col * 0.6, bx = col * 2.5 - bw / 2, by = h * 0.76, bh = h * 0.07;
+  big(2, s.rank, '#fff', 0, 0.58);
+  const bw = col * 0.6, bx = col * 2.5 - bw / 2, by = h * 0.8, bh = h * 0.07;
   g.fillStyle = 'rgba(255,255,255,0.18)';
   g.beginPath(); g.roundRect(bx, by, bw, bh, bh / 2); g.fill();
   const frac = s.span > 0 ? s.into / s.span : 1;
