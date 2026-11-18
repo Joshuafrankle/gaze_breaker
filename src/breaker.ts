@@ -350,7 +350,7 @@ export class BreakerSystem extends createSystem({
   }
 
   update(delta: number): void {
-    const dt = Math.min(delta, 0.033);
+    const dt = Math.min(delta, 0.1); // real time down to 10 fps (the physics sub-steps, so a long frame can't tunnel); only a tab coming back from sleep is capped
     if (this.blurred) {
       this.synth.beat(120, false, 0); // system menu open: hold everything, silence the music
       this.synth.pad(false);
