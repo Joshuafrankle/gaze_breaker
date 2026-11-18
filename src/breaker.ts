@@ -729,7 +729,7 @@ export class BreakerSystem extends createSystem({
       m.color.copy(c);
       m.emissive.copy(c);
       m.map = hc ? this.hcMaps[r] : this.tileMap; // contrast: a different pattern per row, not just colour
-      m.emissiveMap = hc ? null : this.tileMap;
+      m.emissiveMap = hc ? this.hcMaps[r] : this.tileMap;
       m.needsUpdate = true;
     });
   }
@@ -786,7 +786,7 @@ export class BreakerSystem extends createSystem({
       this.put(b, brickX(i), brickY(i));
       b.rotation.x = 0;
     });
-    this.bg.setDim(hc ? 0.22 : 1);
+    this.bg.setDim(hc ? 0.32 : 1);
     this.bg.setCalm(this.opts.calm);
     this.bg.setRings(hc || this.opts.calm ? 0 : 1); // the ring tunnel is motion: off in calm and contrast
     this.g.speed = this.speedFor();

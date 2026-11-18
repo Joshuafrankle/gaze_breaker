@@ -130,7 +130,7 @@ const rgb = (c: number[], white = 0) => `rgb(${c.map((v) => Math.round(255 * (v 
 export function setTheme(world: number, hc: boolean): void {
   const [d, m, l] = PALETTES[world % PALETTES.length];
   T = hc
-    ? { key: 'h', fill: 'rgba(0,0,0,0.94)', a: '#ffffff', b: '#ffffff', label: '#f0e442', life: '#f0e442', on: '#f0e442' }
+    ? { key: 'h', fill: 'rgba(6,8,20,0.94)', a: '#ffffff', b: '#f0e442', label: '#f0e442', life: '#f0e442', on: '#f0e442' }
     : {
         key: String(world % PALETTES.length),
         fill: `rgba(${d.map((v) => Math.round(v * 255 * 1.6)).join(',')},0.86)`,
@@ -197,7 +197,7 @@ function glass(g: Ctx, w: number, h: number): void {
   g.strokeStyle = grad;
   g.lineWidth = T.key === 'h' ? 6 : 3;
   g.shadowColor = T.a;
-  g.shadowBlur = T.key === 'h' ? 0 : 10;
+  g.shadowBlur = T.key === 'h' ? 8 : 10;
   g.beginPath();
   g.roundRect(m, m, w - 2 * m, h - 2 * m, r);
   g.stroke();
@@ -407,12 +407,17 @@ export function patternTexture(kind: number, w: number, h: number): CanvasTextur
   c.width = 256;
   c.height = Math.round((256 * h) / w);
   const g = c.getContext('2d')!;
-  g.fillStyle = '#fff';
-  g.fillRect(0, 0, c.width, c.height);
-  g.fillStyle = g.strokeStyle = 'rgba(0,0,0,0.85)';
-  g.lineWidth = c.height * 0.14;
-  g.lineJoin = 'round';
   const H = c.height, W = c.width;
+  // Lit from above like the standard tile, so contrast bricks are chunky too (the bomb brick stays pale and flat).
+  const lit = g.createLinearGradient(0, 0, 0, H);
+  lit.addColorStop(0, '#ffffff');
+  lit.addColorStop(0.55, '#f4f4f4');
+  lit.addColorStop(1, kind === 5 ? '#ffffff' : '#e0e0e0');
+  g.fillStyle = lit;
+  g.fillRect(0, 0, W, H);
+  g.fillStyle = g.strokeStyle = 'rgba(0,0,0,0.85)';
+  g.lineWidth = H * 0.14;
+  g.lineJoin = 'round';
   if (kind === 1) {
     for (let i = 0; i < 3; i++) g.fillRect(W * 0.08, H * (0.14 + i * 0.3), W * 0.84, H * 0.18);
   } else if (kind === 2) {
