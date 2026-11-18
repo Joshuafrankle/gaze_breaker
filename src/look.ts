@@ -475,6 +475,40 @@ export function patternTexture(kind: number, w: number, h: number): CanvasTextur
   return map;
 }
 
+// The list of ranks: the one you hold is filled in, the ones ahead are dimmed with what it takes to reach them.
+export function drawRanks(g: Ctx, w: number, h: number, ranks: { name: string; at: number }[], index: number, bricks: number): void {
+  glass(g, w, h);
+  const pad = w * 0.06;
+  g.textAlign = 'left';
+  g.fillStyle = T.label;
+  fit(g, 'RANKS', h * 0.1, w * 0.4, 700);
+  g.fillText('RANKS', pad, h * 0.1);
+  g.textAlign = 'right';
+  fit(g, `${bricks} bricks broken`, h * 0.085, w * 0.5, 600);
+  g.fillText(`${bricks} bricks broken`, w - pad, h * 0.1);
+  const rh = h * 0.115;
+  ranks.forEach((r, i) => {
+    const cy = h * (0.27 + 0.13 * i);
+    const now = i === index;
+    if (now) {
+      g.fillStyle = T.a;
+      g.beginPath(); g.roundRect(pad * 0.6, cy - rh / 2, w - pad * 1.2, rh, rh / 2); g.fill();
+    }
+    g.fillStyle = now ? '#001018' : i < index ? '#fff' : 'rgba(255,255,255,0.55)';
+    g.textAlign = 'left';
+    fit(g, r.name, rh * 0.62, w * 0.5, 800);
+    g.fillText(r.name, pad * 1.2, cy);
+    g.textAlign = 'right';
+    const note = now ? 'YOU ARE HERE' : r.at === 0 ? 'start' : `${r.at} bricks`;
+    fit(g, note, rh * 0.5, w * 0.4, 700);
+    g.fillText(note, w - pad * 1.2, cy);
+  });
+  g.textAlign = 'center';
+  g.fillStyle = T.label;
+  fit(g, 'Pinch to close', h * 0.07, w * 0.5, 600);
+  g.fillText('Pinch to close', w / 2, h * 0.93);
+}
+
 // Between rounds: daily streak, whether today's wall is cleared, and lifetime rank with a progress bar.
 export function drawProgress(
   g: Ctx, w: number, h: number,
@@ -506,7 +540,7 @@ export function drawProgress(
   big(0, `${s.streak} ${s.streak === 1 ? 'DAY' : 'DAYS'}`, '#fff', s.streak > 0 ? h * 0.2 : 0);
   label(1, s.name ? `TODAY: ${s.name}` : "TODAY'S WALL");
   big(1, s.done ? 'CLEARED' : 'CLEAR IT', s.done ? T.on : '#ffd34d');
-  label(2, 'RANK');
+  label(2, 'RANK  ›'); // the arrow hints that it opens the list
   big(2, s.rank, '#fff', 0, 0.5);
   const bw = col * 0.6, bx = col * 2.5 - bw / 2, by = h * 0.76, bh = h * 0.07;
   g.fillStyle = 'rgba(255,255,255,0.18)';

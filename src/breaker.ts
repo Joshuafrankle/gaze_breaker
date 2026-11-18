@@ -30,9 +30,9 @@ import {
   BH, BOTTOM, BW, CAP_R, COLS, PADDLE_H, PADDLE_W, PADDLE_Y, R, ROWS, TOP, W,
   KIND_BOMB, blast, brickX, brickY, dropCapsule, launch, makeLevel, step, stepCapsules, today, type Capsule, type Events, type Game,
 } from './breaker-core.js';
-import { Backdrop, Option } from './components.js';
-import { CAP_STYLE, brickPalette, canvasPlane, drawChip, drawFx, drawHud, drawMessage, drawProgress, drawToast, glowTexture, iconTexture, makeBackground, patternTexture, setTheme, tileTexture } from './look.js';
-import { clearDay, clearedToday, liveStreak, newProgress, rankOf, type Progress } from './progress.js';
+import { Backdrop, Option, Ranks } from './components.js';
+import { CAP_STYLE, brickPalette, canvasPlane, drawChip, drawFx, drawHud, drawMessage, drawProgress, drawRanks, drawToast, glowTexture, iconTexture, makeBackground, patternTexture, setTheme, tileTexture } from './look.js';
+import { RANKS, clearDay, clearedToday, liveStreak, newProgress, rankOf, type Progress } from './progress.js';
 import { Synth } from './synth.js';
 
 const D = 1.4; // radius of the curved playfield around the player; its 65 deg arc sits inside the glasses' 74
@@ -59,6 +59,7 @@ export class BreakerSystem extends createSystem({
   pressed: { required: [Backdrop, Pressed] },
   options: { required: [Option] },
   pressedOptions: { required: [Option, Pressed] },
+  pressedRanks: { required: [Ranks, Pressed] },
 }) {
   private synth = new Synth();
   private anchor!: Group;
@@ -135,6 +136,8 @@ export class BreakerSystem extends createSystem({
   private optPanels: Panel[] = [];
   private prog: Progress = newProgress(); // daily streak and lifetime bricks, saved on the device
   private progPanel!: Panel;
+  private rankPanel!: Panel; // the list of ranks, opened by pinching the progress panel
+  private ranksOpen = false;
   private faster = false; // a new level just started and the ball is quicker
   private daily = false; // today's wall was just cleared: celebrate until the next launch
 
@@ -321,7 +324,17 @@ export class BreakerSystem extends createSystem({
     });
     this.progPanel = canvasPlane(1.2, 0.19, 1280);
     this.put(this.progPanel.mesh, 0, -0.395);
-    this.field.add(this.progPanel.mesh);
+    this.rankPanel = canvasPlane(1.0, 0.46, 1024);
+    this.put(this.rankPanel.mesh, 0, -0.3);
+    this.rankPanel.mesh.position.z += 0.06; // in front of the message and progress panels it covers
+    for (const p of [this.progPanel, this.rankPanel]) {
+      const e = this.world.createTransformEntity(p.mesh, { parent: fieldEntity });
+      e.addComponent(RayInteractable);
+      e.addComponent(Ranks);
+    }
+    this.queries.pressedRanks.subscribe('qualify', () => {
+      if (this.showMenus) this.ranksOpen = !this.ranksOpen;
+    });
     this.queries.pressedOptions.subscribe('qualify', (e) => {
       if (this.showMenus) this.toggle(e.getValue(Option, 'kind') as number); // pinch only: looking at a card never toggles it
     });
@@ -330,6 +343,7 @@ export class BreakerSystem extends createSystem({
     this.applyOptions();
 
     this.queries.pressed.subscribe('qualify', () => {
+      this.ranksOpen = false;
       if (this.state === 'ready') this.go();
       else if (this.state === 'over' && this.wait > 0.7) this.newGame();
     });
@@ -489,12 +503,16 @@ export class BreakerSystem extends createSystem({
       const on = this.opts[OPT_KEYS[kind]];
       panel.draw(`${on}|${hov}`, (c, w, h) => drawChip(c, w, h, OPT_TEXT[kind][0], OPT_TEXT[kind][1], on, hov));
     }
-    this.progPanel.mesh.visible = this.showMenus;
+    const list = this.showMenus && this.ranksOpen; // the list stands in for the message and progress panels (the glass is see-through)
+    this.progPanel.mesh.visible = this.showMenus && !list;
+    this.rankPanel.mesh.visible = list;
     if (this.showMenus) {
       const day = today();
       const streak = liveStreak(this.prog, day);
       const done = clearedToday(this.prog, day);
       const r = rankOf(this.prog.bricks);
+      if (this.ranksOpen)
+        this.rankPanel.draw(`${r.index}|${this.prog.bricks}`, (c, w, h) => drawRanks(c, w, h, RANKS, r.index, this.prog.bricks));
       if (this.dayNameFor !== day) {
         this.dayNameFor = day;
         this.dayName = makeLevel(day, 1).name;
@@ -503,7 +521,7 @@ export class BreakerSystem extends createSystem({
         drawProgress(c, w, h, { streak, done, name: this.dayName, rank: r.name, into: r.into, span: r.span }),
       );
     }
-    this.msg.mesh.visible = this.state !== 'play';
+    this.msg.mesh.visible = this.state !== 'play' && !list;
     if (this.state !== 'play') {
       const over = this.state === 'over';
       const act = this.immersive ? 'pinch' : 'click';

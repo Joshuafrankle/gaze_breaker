@@ -43,7 +43,7 @@ _Real screenshots from the Immersive Web Emulator (Meta VR Glasses profile)._
 - **A reason to come back that isn't a notification.** One wall per day, the same for everyone, each a
   hand-drawn shape (heart, invader, diamond, frame, funnel, waves). Clear today's wall to keep your
   **daily streak**; miss a day and it resets. Breaking bricks raises a lifetime **rank** (Cadet, Pilot,
-  Ace, Commander, Legend) that only ever goes up. Streak, rank and best score live on the device.
+  Ace, Commander, Legend) that only ever goes up. Pinch the rank panel to see the whole ladder. Streak, rank and best score live on the device.
 - **Spatial audio.** Each brick's note is positioned at the brick (Web Audio HRTF panner), over a
   four-on-the-floor beat that speeds up from 120 to 140 BPM as the levels climb.
 - **Performance.** About 100 draw calls and 34k triangles per frame (the per-brick glow and shadow are
